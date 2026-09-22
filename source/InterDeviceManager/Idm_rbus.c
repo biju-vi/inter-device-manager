@@ -585,14 +585,6 @@ rbusError_t X_RDK_Remote_MethodHandler(rbusHandle_t handle, char const* methodNa
                 rc = strcpy_s(indexNode->stRemoteDeviceInfo.Capabilities, sizeof(indexNode->stRemoteDeviceInfo.Capabilities), pidmDmlInfo->stConnectionInfo.Capabilities);
 	        ERR_CHK(rc);
             }
-            else
-            {
-                // PSM data structre is also empty. Read it from factory and update local device cap
-                IdmMgr_GetFactoryDefaultValue(PSM_DEVICE_CAPABILITIES, pidmDmlInfo->stConnectionInfo.Capabilities);
-                CcspTraceInfo(("%s %d - Updating local device capabilities from factory PSM \n", __FUNCTION__, __LINE__));
-                rc = strcpy_s(indexNode->stRemoteDeviceInfo.Capabilities, sizeof(indexNode->stRemoteDeviceInfo.Capabilities), pidmDmlInfo->stConnectionInfo.Capabilities);
-	        ERR_CHK(rc);
-            }
         }
         /* Append local device capabilities from rbus value */
         char* token = strtok(str, ",");
@@ -652,11 +644,8 @@ rbusError_t X_RDK_Remote_MethodHandler(rbusHandle_t handle, char const* methodNa
             }
             else
             {
-                // PSM data structre is also empty. Read it from factory and update local device cap
-                IdmMgr_GetFactoryDefaultValue(PSM_DEVICE_CAPABILITIES, pidmDmlInfo->stConnectionInfo.Capabilities);
-                CcspTraceInfo(("%s %d - Updating local device capabilities from factory PSM \n", __FUNCTION__, __LINE__));
-                rc = strcpy_s(indexNode->stRemoteDeviceInfo.Capabilities, sizeof(indexNode->stRemoteDeviceInfo.Capabilities), pidmDmlInfo->stConnectionInfo.Capabilities);
-	        ERR_CHK(rc);
+                // we don't have anything to remove
+                return RBUS_ERROR_SUCCESS;
             }
         }
 
