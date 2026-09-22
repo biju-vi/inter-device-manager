@@ -642,11 +642,6 @@ rbusError_t X_RDK_Remote_MethodHandler(rbusHandle_t handle, char const* methodNa
                 rc = strcpy_s(indexNode->stRemoteDeviceInfo.Capabilities, sizeof(indexNode->stRemoteDeviceInfo.Capabilities), pidmDmlInfo->stConnectionInfo.Capabilities);
 	        ERR_CHK(rc);
             }
-            else
-            {
-                // we don't have anything to remove
-                return RBUS_ERROR_SUCCESS;
-            }
         }
 
         /* Remove capability as requested by rbus value */
