@@ -18,6 +18,7 @@
  */
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
 #include "Idm_TCP_apis.h"
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -927,28 +928,25 @@ int send_remote_message(connection_info_t* conn_info,void *payload)
 
 int close_remote_connection(connection_info_t* conn_info)
 {
-    struct timespec ts;
-    int ret = 0;
-
     pthread_mutex_lock(&conn_info->lock);
 
     conn_info->closing = true;
 
-    // close connection can happen at anytime. So check if active senders are there before freeing SSL memory
-    // wait until sender finishes
+    /*
+     * Interrupt any blocking SSL_write before waiting.
+     */
+    if (conn_info->active_senders > 0 && conn_info->conn > 0)
+    {
+        if (shutdown(conn_info->conn, SHUT_RDWR) != 0)
+        {
+            CcspTraceError(("%s: Failed to shut down socket %d: %s\n",
+                            __FUNCTION__, conn_info->conn, strerror(errno)));
+        }
+    }
+
     while (conn_info->active_senders > 0)
     {
-        clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_sec += 5;
-        // release lock , sleep and wait to get signal from sender OR wait for maximum 5 seconds
-        ret = pthread_cond_timedwait(&conn_info->cond,&conn_info->lock,&ts);
-
-        if (ret == ETIMEDOUT)
-        {
-            CcspTraceError(("%s: Timeout waiting for send to complete." "active_senders=%d. Proceeding with cleanup\n",
-                            __FUNCTION__, conn_info->active_senders));
-            break;
-        }
+        pthread_cond_wait(&conn_info->cond, &conn_info->lock);
     }
 
     if (conn_info->enc.ssl != NULL)
@@ -977,4 +975,3 @@ int close_remote_connection(connection_info_t* conn_info)
 
     return 1;
 }
-
