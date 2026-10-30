@@ -895,8 +895,7 @@ int send_remote_message(connection_info_t* conn_info,void *payload)
 
     conn_info->active_senders--;
 
-    if (conn_info->closing &&
-            conn_info->active_senders == 0)
+    if (conn_info->closing &&  conn_info->active_senders == 0)
     {
         pthread_cond_signal(&conn_info->cond);
     }
@@ -909,11 +908,9 @@ int send_remote_message(connection_info_t* conn_info,void *payload)
         return 0;
     }
 
-    CcspTraceError(("(%s:%d) SSL_write failed (Ret: %d, SSL Error: %d)\n",
-                __FUNCTION__, __LINE__, val, ssl_err));
+    CcspTraceError(("(%s:%d) SSL_write failed (Ret: %d, SSL Error: %d)\n", __FUNCTION__, __LINE__, val, ssl_err));
 
 #else
-
     if(send(conn_info->conn, payload, sizeof(payload_t), 0) < 0)
     {
         CcspTraceError(("%s %d - send failed : %s\n",
